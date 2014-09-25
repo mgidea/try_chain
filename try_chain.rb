@@ -1,23 +1,21 @@
 class Object
   def try_chain(*args)
-    chain = self
-    args.each do |method|
-      method.is_a?(Hash) ? (method, arguments = method.first) : arguments = []
-      chain = chain.try(method.to_sym, *arguments)
-    end
-    chain
+    chain_up(:try, *args)
   end
 
   def blank_try(meth, *args)
-    result = self.try(meth, *args)
-    result.presence
+    self.try(meth, *args).presence
   end
 
   def presence_chain(*args)
+    chain_up(:blank_try, *args)
+  end
+
+  def chain_up(which_method, *args)
     chain = self
     args.each do |method|
       method.is_a?(Hash) ? (method, arguments = method.first) : arguments = []
-      chain = chain.blank_try(method.to_sym, *arguments)
+      chain = chain.__send__(which_method, method, *arguments)
     end
     chain
   end
